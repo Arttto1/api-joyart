@@ -286,7 +286,7 @@ function generateQRCodeLink(link) {
 const sendThankYouEmail = async (email) => {
   const encodedString = encodeURIComponent(nameWithId);
 
-  const costumerUrl = `https://0786-2804-14d-8483-4a69-1cb5-8075-4834-9eee.ngrok-free.app/second.html?name=${encodedString}`;
+  const costumerUrl = `https://artjoy.netlify.app/second.html?name=${encodedString}`;
 
   const qrCodeUrl = generateQRCodeLink(costumerUrl);
 
