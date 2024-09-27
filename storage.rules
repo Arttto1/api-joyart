@@ -1,0 +1,10 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{urlName}/{allPaths=**} {
+      allow read: if resource.name.matches('^' + urlName + '/.*$');
+      allow write: if request.headers.referer.matches('https?://0786-2804-14d-8483-4a69-1cb5-8075-4834-9eee.ngrok-free.app/index.html');
+    }
+  }
+}
