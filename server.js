@@ -79,7 +79,7 @@ app.use((req, res, next) => {
     "Origin, X-Requested-With, Content-Type, Accept, Authorization"
   );
 
-  next(); // Passa para o próximo middleware ou rota
+  next(); // Passa para o próximo middleware ou rotas
 });
 
 app.post("/log", express.json(), (req, res) => {
