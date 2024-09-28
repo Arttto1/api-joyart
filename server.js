@@ -220,7 +220,6 @@ app.post("/create-checkout-session", express.json(), async (req, res) => {
   console.log("nameWithId recebido:", nameWithId);
 
     // Log do customer_email
-    const customerEmail = req.body.email;
     console.log("customer_email recebido:", customerEmail);
 
   try {
@@ -249,7 +248,6 @@ app.post("/create-checkout-session", express.json(), async (req, res) => {
           quantity: item.quantity,
         };
       }),
-      customer_email: customerEmail,
       success_url: `${siteLink}/success.html`,
       cancel_url: `${siteLink}/cancel.html`,
       customer_creation: "always",
