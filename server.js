@@ -217,6 +217,8 @@ app.post("/create-checkout-session", express.json(), async (req, res) => {
   const { items, nameWithId } = req.body;
   const userIp = req.headers["x-forwarded-for"] || req.ip;
 
+  console.log("nameWithId recebido:", nameWithId);
+
   try {
     // obter pais usando ip
     const userCountry = await getUserCountry(userIp);
@@ -323,6 +325,8 @@ app.post(
       // Obter o e-mail do cliente
       const email = session.customer_email; // O e-mail deve estar disponível nos dados da sessão
       const nameWithIdCheckout = session.metadata.nameWithId; // Acessa o nameWithId nos metadados
+
+      console.log("nameWithId recebido no webhook:", nameWithIdCheckout);
 
       if (email) {
         await sendThankYouEmail(email, nameWithIdCheckout);
