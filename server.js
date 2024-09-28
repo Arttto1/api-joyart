@@ -100,7 +100,7 @@ app.post("/api/upload", upload.array("files"), async (req, res) => {
     }
 
     const data = JSON.parse(req.body.data); // Parseia os dados JSON
-    const { name, date, message, urlYtb } = data; // Desestrutura os dados
+    const { name, date, message, urlYtb } = data; 
 
     const files = req.files;
     if (!files || files.length === 0) {

@@ -2,7 +2,7 @@
   "version": 2,
   "functions": {
     "server.js": { 
-      "runtime": "nodejs16.20.0" 
+      "runtime": "nodejs16.x" 
     }
   },
   "builds": [
