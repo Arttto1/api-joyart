@@ -82,14 +82,13 @@ app.post("/api/upload", upload.array("files"), async (req, res) => {
     }
 
     const data = JSON.parse(req.body.data); // Parseia os dados JSON
-    const { name, date, message, urlYtb } = data;
+    const { name, date, message, urlYtb, nameWithId } = data;
 
     const files = req.files;
     if (!files || files.length === 0) {
       throw new Error("Nenhum arquivo foi enviado.");
     }
 
-    nameWithId = `${name.replace(/\s+/g, "_")}_${Date.now()}`;
     const downloadURLs = [];
 
     // Fazendo o upload dos arquivos usando o Firebase Admin SDK
@@ -215,7 +214,7 @@ const getUserCountry = async (ip) => {
 // });
 
 app.post("/create-checkout-session", express.json(), async (req, res) => {
-  const { items } = req.body;
+  const { items, nameWithId } = req.body;
   const userIp = req.headers["x-forwarded-for"] || req.ip;
 
   try {
