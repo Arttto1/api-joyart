@@ -219,6 +219,10 @@ app.post("/create-checkout-session", express.json(), async (req, res) => {
 
   console.log("nameWithId recebido:", nameWithId);
 
+    // Log do customer_email
+    const customerEmail = req.body.email;
+    console.log("customer_email recebido:", customerEmail);
+
   try {
     // obter pais usando ip
     const userCountry = await getUserCountry(userIp);
@@ -245,7 +249,7 @@ app.post("/create-checkout-session", express.json(), async (req, res) => {
           quantity: item.quantity,
         };
       }),
-      customer_email: req.body.email,
+      customer_email: customerEmail,
       success_url: `${siteLink}/success.html`,
       cancel_url: `${siteLink}/cancel.html`,
       customer_creation: "always",
@@ -327,6 +331,7 @@ app.post(
       const nameWithIdCheckout = session.metadata.nameWithId; // Acessa o nameWithId nos metadados
 
       console.log("nameWithId recebido no webhook:", nameWithIdCheckout);
+      console.log("email recebido no webhook:", email);
 
       if (email) {
         await sendThankYouEmail(email, nameWithIdCheckout);
