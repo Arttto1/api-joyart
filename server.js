@@ -25,12 +25,12 @@ const nodemailer = require("nodemailer");
 const stripe = require("stripe")(process.env.STRIPE_PRIVATE_KEY);
 const axios = require("axios");
 const express = require("express");
+const session = require('express-session');
 const cors = require('cors');
 const app = express();
 
 app.use(express.static("public"));
 let imagePath = null;
-let nameWithId = null;
 
 
 initializeApp({
@@ -53,6 +53,14 @@ const corsOptions = {
 
 // Usando o middleware CORS
 app.use(cors(corsOptions));
+
+
+app.use(session({
+  secret: process.env.SESSION_SECRET,  // Replace with a strong secret key
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false }  // Set to true if you're using HTTPS
+}));
 
 app.get("/favicon.ico", (req, res) => res.status(204));
 
@@ -90,7 +98,8 @@ app.post("/api/upload", upload.array("files"), async (req, res) => {
       throw new Error("Nenhum arquivo foi enviado.");
     }
 
-    nameWithId = `${name.replace(/\s+/g, "_")}_${Date.now()}`;
+    const nameWithId = `${name.replace(/\s+/g, "_")}_${Date.now()}`;
+    req.session.nameWithId = nameWithId;
     const downloadURLs = [];
 
     // Fazendo o upload dos arquivos usando o Firebase Admin SDK
@@ -226,7 +235,7 @@ app.post("/create-checkout-session", express.json(), async (req, res) => {
     const currency = isBrazil ? "brl" : "usd";
 
     // criar sessão de checkout
-    const session = await stripe.checkout.sessions.create({
+    const sessionStripe = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       mode: "payment",
       line_items: items.map((item) => {
@@ -250,7 +259,7 @@ app.post("/create-checkout-session", express.json(), async (req, res) => {
       cancel_url: `${siteLink}/cancel.html`,
       customer_creation: "always",
     });
-    res.json({ url: session.url });
+    res.json({ url: sessionStripe.url });
     console.log("Sessão criada:");
   } catch (e) {
     console.error("Erro ao criar sessão de checkout:");
@@ -265,10 +274,10 @@ function generateQRCodeLink(link) {
   )}&size=200x200`;
 }
 
-const sendThankYouEmail = async (email) => {
+const sendThankYouEmail = async (email, nameWithId) => {
   const encodedString = encodeURIComponent(nameWithId);
 
-  const costumerUrl = `https://artjoy.netlify.app/second.html?name=${encodedString}`;
+  const costumerUrl = `https://master--artjoy.netlify.app/second.html?name=${encodedString}`;
 
   const qrCodeUrl = generateQRCodeLink(costumerUrl);
 
@@ -306,6 +315,7 @@ app.post(
   async (req, res) => {
     const sig = req.headers["stripe-signature"];
     let event;
+    const nameWithId = req.session.nameWithId;
 
     try {
       event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
@@ -336,7 +346,7 @@ app.post(
       }
 
       if (email) {
-        await sendThankYouEmail(email);
+        await sendThankYouEmail(req.body.email, nameWithId);
       }
     }
 
