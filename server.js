@@ -27,6 +27,7 @@ const nodemailer = require("nodemailer");
 const stripe = require("stripe")(process.env.STRIPE_PRIVATE_KEY);
 const axios = require("axios");
 const express = require("express");
+const cors = require('cors');
 const app = express();
 
 app.use(express.static("public"));
@@ -46,47 +47,15 @@ const storage = getStorage();
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 const siteLink = process.env.SERVER_URL;
 
-// const arrayOfValidOrigins = [
-//   'https://artjoy.netlify.app',
-//   'https://master--artjoy.netlify.app', // Adicionando a nova origem válida
-// ];
+// Configurações de CORS
+const corsOptions = {
+  origin: 'https://master--artjoy.netlify.app', // ou 'https://artjoy.netlify.app' se precisar
+  methods: 'GET, POST, OPTIONS',
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
+};
 
-// // Middleware de CORS
-
-// app.use((req, res, next) => {
-//   const origin = req.headers.origin;
-
-//   // Verifica se a origem da requisição está na lista de origens permitidas
-//   if (arrayOfValidOrigins.includes(origin)) {
-//     res.setHeader("Access-Control-Allow-Origin", origin);
-//   }
-
-//   // Configurações de segurança
-//   res.setHeader(
-//     "Content-Security-Policy",
-//     "default-src 'self'; script-src 'self'"
-//   );
-//   res.setHeader("X-Content-Type-Options", "nosniff");
-//   res.setHeader("X-Frame-Options", "DENY");
-//   res.setHeader("X-XSS-Protection", "1; mode=block");
-
-//   // Permitir métodos HTTP específicos
-//   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS"); // Adicione OPTIONS aqui
-
-//   // Permitir cabeçalhos específicos
-//   res.setHeader(
-//     "Access-Control-Allow-Headers",
-//     "Origin, X-Requested-With, Content-Type, Accept, Authorization"
-//   );
-
-//   // Se a requisição for do tipo OPTIONS, responda com 204 (No Content)
-//   if (req.method === "OPTIONS") {
-//     return res.sendStatus(204);
-//   }
-
-//   next(); // Passa para o próximo middleware ou rotas
-// });
-
+// Usando o middleware CORS
+app.use(cors(corsOptions));
 
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*"); // Permitir qualquer origem
