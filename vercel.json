@@ -1,19 +1,20 @@
-
-  {
-    "version": 2,
-    "functions": {
-      "node": "16.20.0" 
-    },
-    "builds": [
-      {
-        "src": "server.js", 
-        "use": "@vercel/node"
-      }
-    ],
-    "routes": [
-      {
-        "src": "/(.*)",
-        "dest": "server.js"
-      }
-    ]
-  }
+{
+  "version": 2,
+  "functions": {
+    "server.js": { 
+      "runtime": "nodejs16.20.0" 
+    }
+  },
+  "builds": [
+    {
+      "src": "server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "server.js" 
+    }
+  ]
+}
