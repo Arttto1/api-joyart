@@ -25,12 +25,12 @@ const nodemailer = require("nodemailer");
 const stripe = require("stripe")(process.env.STRIPE_PRIVATE_KEY);
 const axios = require("axios");
 const express = require("express");
-const session = require('express-session');
 const cors = require('cors');
 const app = express();
 
 app.use(express.static("public"));
 let imagePath = null;
+let nameWithId = null;
 
 
 initializeApp({
@@ -54,24 +54,25 @@ const corsOptions = {
 // Usando o middleware CORS
 app.use(cors(corsOptions));
 
-
-app.use(session({
-  secret: process.env.SESSION_SECRET,  // Replace with a strong secret key
-  resave: false,
-  saveUninitialized: true,
-  cookie: { secure: true }  // Set to true if you're using HTTPS
-}));
-
 app.get("/favicon.ico", (req, res) => res.status(204));
 
 app.get('/', (req, res) => {
   res.send('Hello World!');
 });
 
+app.get('/api/test', (req, res) => {
+  res.json({ message: 'A rota de teste está funcionando!' });
+  res.send('<h1>A rota de teste está funcionando!</h1>'); // Envia uma resposta HTML
+});
+
 app.post("/log", express.json(), (req, res) => {
   const { messageLog } = req.body;
   console.log("Log do cliente:", messageLog);
   res.status(200).send("Log recebido");
+});
+
+app.get("/api/secure-data", (req, res) => {
+  res.json({ message: "Este é um endpoint seguro." });
 });
 
 app.post("/api/upload", upload.array("files"), async (req, res) => {
@@ -89,8 +90,7 @@ app.post("/api/upload", upload.array("files"), async (req, res) => {
       throw new Error("Nenhum arquivo foi enviado.");
     }
 
-    const nameWithId = `${name.replace(/\s+/g, "_")}_${Date.now()}`;
-    req.session.nameWithId = nameWithId;
+    nameWithId = `${name.replace(/\s+/g, "_")}_${Date.now()}`;
     const downloadURLs = [];
 
     // Fazendo o upload dos arquivos usando o Firebase Admin SDK
@@ -226,7 +226,7 @@ app.post("/create-checkout-session", express.json(), async (req, res) => {
     const currency = isBrazil ? "brl" : "usd";
 
     // criar sessão de checkout
-    const sessionStripe = await stripe.checkout.sessions.create({
+    const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       mode: "payment",
       line_items: items.map((item) => {
@@ -249,8 +249,11 @@ app.post("/create-checkout-session", express.json(), async (req, res) => {
       success_url: `${siteLink}/success.html`,
       cancel_url: `${siteLink}/cancel.html`,
       customer_creation: "always",
+      metadata: {
+        nameWithId: nameWithId,
+      },
     });
-    res.json({ url: sessionStripe.url });
+    res.json({ url: session.url });
     console.log("Sessão criada:");
   } catch (e) {
     console.error("Erro ao criar sessão de checkout:");
@@ -265,8 +268,8 @@ function generateQRCodeLink(link) {
   )}&size=200x200`;
 }
 
-const sendThankYouEmail = async (email, nameWithId) => {
-  const encodedString = encodeURIComponent(nameWithId);
+const sendThankYouEmail = async (email, nameWithIdCheckout) => {
+  const encodedString = encodeURIComponent(nameWithIdCheckout);
 
   const costumerUrl = `https://master--artjoy.netlify.app/second.html?name=${encodedString}`;
 
@@ -306,7 +309,6 @@ app.post(
   async (req, res) => {
     const sig = req.headers["stripe-signature"];
     let event;
-    const nameWithId = req.session.nameWithId;
 
     try {
       event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
@@ -317,27 +319,15 @@ app.post(
       return;
     }
 
-    if (event.type === "payment_intent.succeeded") {
-      const paymentIntent = event.data.object;
-      const customerId = paymentIntent.customer;
-      console.log("Pagamento bem-sucedido, ID do cliente:", customerId);
+    if (event.type === "checkout.session.completed") { // Mudando para o evento correto
+      const session = event.data.object;
 
-      let email;
-      if (customerId) {
-        try {
-          const customer = await stripe.customers.retrieve(customerId);
-          email = customer.email;
-          console.log("E-mail do cliente:", email);
-        } catch (err) {
-          console.error("Erro ao recuperar o cliente:", err);
-        }
-      } else {
-        email = req.body.email; // Use o email do corpo da requisição, se necessário
-        console.log("E-mail do cliente (do corpo):", email);
-      }
+      // Obter o e-mail do cliente
+      const email = session.customer_email; // O e-mail deve estar disponível nos dados da sessão
+      const nameWithIdCheckout = session.metadata.nameWithId; // Acessa o nameWithId nos metadados
 
       if (email) {
-        await sendThankYouEmail(req.body.email, nameWithId);
+        await sendThankYouEmail(email, nameWithIdCheckout);
       }
     }
 
