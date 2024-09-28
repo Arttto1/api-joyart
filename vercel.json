@@ -1,5 +1,9 @@
-{
+
+  {
     "version": 2,
+    "functions": {
+      "node": "16.20.0" 
+    },
     "builds": [
       {
         "src": "server.js", 
