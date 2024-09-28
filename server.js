@@ -7,20 +7,20 @@ const upload = multer({ storage: multer.memoryStorage() });
 const path = require("path");
 const { initializeApp, cert } = require("firebase-admin/app");
 const { getFirestore } = require("firebase-admin/firestore");
-const { getStorage} = require("firebase-admin/storage");
+const { getStorage } = require("firebase-admin/storage");
 const functions = require("firebase-functions");
-const serviceAccount = ({
+const serviceAccount = {
   type: process.env.FIREBASE_TYPE,
   project_id: process.env.FIREBASE_PROJECT_ID,
   private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
-  private_key: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'), // Corrige as quebras de linha
+  private_key: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"), // Corrige as quebras de linha
   client_email: process.env.FIREBASE_CLIENT_EMAIL,
   client_id: process.env.FIREBASE_CLIENT_ID,
   auth_uri: process.env.FIREBASE_AUTH_URI,
   token_uri: process.env.FIREBASE_TOKEN_URI,
   auth_provider_cert_url: process.env.FIREBASE_AUTH_PROVIDER_CERT_URL,
-  client_cert_url: process.env.FIREBASE_CLIENT_CERT_URL
-})
+  client_cert_url: process.env.FIREBASE_CLIENT_CERT_URL,
+};
 
 const bodyParser = require("body-parser");
 const nodemailer = require("nodemailer");
@@ -47,9 +47,8 @@ const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 const siteLink = process.env.SERVER_URL;
 
 const arrayOfValidOrigins = [
-  "http://localhost:3000",
-  "http://localhost:3001",
-  process.env.SERVER_URL,
+  'https://artjoy.netlify.app',
+  'https://master--artjoy.netlify.app', // Adicionando a nova origem válida
 ];
 
 // Middleware de CORS
@@ -61,23 +60,29 @@ app.use((req, res, next) => {
   if (arrayOfValidOrigins.includes(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
   }
-  res.setHeader('Access-Control-Allow-Origin', 'https://artjoy.netlify.app'); 
+
   // Configurações de segurança
   res.setHeader(
     "Content-Security-Policy",
     "default-src 'self'; script-src 'self'"
-  ); // Permitir scripts apenas do próprio domínio
-  res.setHeader("X-Content-Type-Options", "nosniff"); // Impede que o navegador faça sniffing de tipos MIME
-  res.setHeader("X-Frame-Options", "DENY"); // Impede que a página seja carregada em um iframe
-  res.setHeader("X-XSS-Protection", "1; mode=block"); // Ativa a proteção contra XSS
+  );
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("X-XSS-Protection", "1; mode=block");
+
   // Permitir métodos HTTP específicos
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS"); // Adicione OPTIONS aqui
 
   // Permitir cabeçalhos específicos
   res.setHeader(
     "Access-Control-Allow-Headers",
     "Origin, X-Requested-With, Content-Type, Accept, Authorization"
   );
+
+  // Se a requisição for do tipo OPTIONS, responda com 204 (No Content)
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
 
   next(); // Passa para o próximo middleware ou rotas
 });
@@ -100,7 +105,7 @@ app.post("/api/upload", upload.array("files"), async (req, res) => {
     }
 
     const data = JSON.parse(req.body.data); // Parseia os dados JSON
-    const { name, date, message, urlYtb } = data; 
+    const { name, date, message, urlYtb } = data;
 
     const files = req.files;
     if (!files || files.length === 0) {
@@ -146,15 +151,14 @@ app.post("/api/upload", upload.array("files"), async (req, res) => {
   }
 });
 
-app.get('/api/submissions/:urlName', async (req, res) => {
-
+app.get("/api/submissions/:urlName", async (req, res) => {
   try {
     const { urlName } = req.params;
-    const docRef = db.collection('submissions').doc(urlName);
+    const docRef = db.collection("submissions").doc(urlName);
     const docSnap = await docRef.get();
 
     if (!docSnap.exists) {
-      return res.status(404).json({ error: 'Documento não encontrado' });
+      return res.status(404).json({ error: "Documento não encontrado" });
     }
 
     const data = docSnap.data();
@@ -165,13 +169,13 @@ app.get('/api/submissions/:urlName', async (req, res) => {
     const [files] = await bucket.getFiles({ prefix: imagePath });
 
     if (!files.length) {
-      return res.status(404).json({ error: 'Nenhuma imagem encontrada.' });
+      return res.status(404).json({ error: "Nenhuma imagem encontrada." });
     }
 
     const imageUrls = await Promise.all(
       files.map(async (file) => {
         const [url] = await file.getSignedUrl({
-          action: 'read',
+          action: "read",
           expires: Date.now() + 1000 * 60 * 30, // URL válida por 1 hora
         });
         return url;
@@ -183,8 +187,8 @@ app.get('/api/submissions/:urlName', async (req, res) => {
       imageUrls,
     });
   } catch (error) {
-    console.error('Erro ao buscar dados:', error);
-    res.status(500).json({ error: 'Erro ao buscar dados' });
+    console.error("Erro ao buscar dados:", error);
+    res.status(500).json({ error: "Erro ao buscar dados" });
   }
 });
 
