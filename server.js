@@ -46,7 +46,7 @@ const siteLink = process.env.SERVER_URL;
 
 // Configurações de CORS
 const corsOptions = {
-  origin: ['https://master--artjoy.netlify.app', 'http://localhost:3001'],
+  origin: ['https://master--artjoy.netlify.app', 'http://localhost:3001', "http://localhost:3000"],
   methods: 'GET, POST, OPTIONS',
   allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization', 'Stripe-Signature',],
 };
