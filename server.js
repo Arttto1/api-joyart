@@ -321,36 +321,28 @@ app.post(
       const customerId = paymentIntent.customer;
       console.log("Pagamento bem-sucedido, ID do cliente:", customerId);
 
-      // Responder rapidamente ao Stripe antes de processar o envio de e-mail
-      res.status(200).send("Evento recebido");
+      let email;
+      if (customerId) {
+        try {
+          const customer = await stripe.customers.retrieve(customerId);
+          email = customer.email;
+          console.log("E-mail do cliente:", email);
+        } catch (err) {
+          console.error("Erro ao recuperar o cliente:", err);
+        }
+      } else {
+        email = req.body.email; // Use o email do corpo da requisição, se necessário
+        console.log("E-mail do cliente (do corpo):", email);
+      }
 
-      // Processar envio de email de forma assíncrona
-      processEmailAsync(customerId);
-    } else {
-      res.status(400).send("Evento não suportado");
+      if (email) {
+        await sendThankYouEmail(email);
+      }
     }
+
+    res.status(200).send("Evento recebido");
   }
 );
-
-async function processEmailAsync(customerId) {
-  let email;
-  
-  // Tentar recuperar o email do cliente
-  if (customerId) {
-    try {
-      const customer = await stripe.customers.retrieve(customerId);
-      email = customer.email;
-      console.log("E-mail do cliente:", email);
-    } catch (err) {
-      console.error("Erro ao recuperar o cliente:", err);
-    }
-  }
-
-  // Se o email for encontrado, enviar o email
-  if (email) {
-    await sendThankYouEmail(email);
-  }
-}
 
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
