@@ -21,8 +21,6 @@ const serviceAccount = {
   auth_provider_cert_url: process.env.FIREBASE_AUTH_PROVIDER_CERT_URL,
   client_cert_url: process.env.FIREBASE_CLIENT_CERT_URL,
 };
-
-const bodyParser = require("body-parser");
 const nodemailer = require("nodemailer");
 const stripe = require("stripe")(process.env.STRIPE_PRIVATE_KEY);
 const axios = require("axios");
@@ -34,7 +32,6 @@ app.use(express.static("public"));
 let imagePath = null;
 let nameWithId = null;
 
-app.get("/favicon.ico", (req, res) => res.status(204));
 
 initializeApp({
   credential: cert(serviceAccount),
@@ -57,11 +54,15 @@ const corsOptions = {
 // Usando o middleware CORS
 app.use(cors(corsOptions));
 
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*"); // Permitir qualquer origem
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS"); // Permitir métodos específicos
-  res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization"); // Permitir cabeçalhos
-  next();
+app.get("/favicon.ico", (req, res) => res.status(204));
+
+app.get('/', (req, res) => {
+  res.send('Hello World!');
+});
+
+app.get('/api/test', (req, res) => {
+  res.json({ message: 'A rota de teste está funcionando!' });
+  res.send('<h1>A rota de teste está funcionando!</h1>'); // Envia uma resposta HTML
 });
 
 app.post("/log", express.json(), (req, res) => {
