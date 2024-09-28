@@ -87,6 +87,14 @@ const siteLink = process.env.SERVER_URL;
 //   next(); // Passa para o próximo middleware ou rotas
 // });
 
+
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*"); // Permitir qualquer origem
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS"); // Permitir métodos específicos
+  res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization"); // Permitir cabeçalhos
+  next();
+});
+
 app.post("/log", express.json(), (req, res) => {
   const { messageLog } = req.body;
   console.log("Log do cliente:", messageLog);
