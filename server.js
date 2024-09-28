@@ -219,9 +219,6 @@ app.post("/create-checkout-session", express.json(), async (req, res) => {
 
   console.log("nameWithId recebido:", nameWithId);
 
-    // Log do customer_email
-    console.log("customer_email recebido:", customerEmail);
-
   try {
     // obter pais usando ip
     const userCountry = await getUserCountry(userIp);
@@ -251,6 +248,7 @@ app.post("/create-checkout-session", express.json(), async (req, res) => {
       success_url: `${siteLink}/success.html`,
       cancel_url: `${siteLink}/cancel.html`,
       customer_creation: "always",
+      customer_email: req.body.email,
       metadata: {
         nameWithId: nameWithId,
       },
