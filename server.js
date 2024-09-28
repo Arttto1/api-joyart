@@ -59,7 +59,7 @@ app.use(session({
   secret: process.env.SESSION_SECRET,  // Replace with a strong secret key
   resave: false,
   saveUninitialized: true,
-  cookie: { secure: false }  // Set to true if you're using HTTPS
+  cookie: { secure: true }  // Set to true if you're using HTTPS
 }));
 
 app.get("/favicon.ico", (req, res) => res.status(204));
@@ -68,19 +68,10 @@ app.get('/', (req, res) => {
   res.send('Hello World!');
 });
 
-app.get('/api/test', (req, res) => {
-  res.json({ message: 'A rota de teste está funcionando!' });
-  res.send('<h1>A rota de teste está funcionando!</h1>'); // Envia uma resposta HTML
-});
-
 app.post("/log", express.json(), (req, res) => {
   const { messageLog } = req.body;
   console.log("Log do cliente:", messageLog);
   res.status(200).send("Log recebido");
-});
-
-app.get("/api/secure-data", (req, res) => {
-  res.json({ message: "Este é um endpoint seguro." });
 });
 
 app.post("/api/upload", upload.array("files"), async (req, res) => {
