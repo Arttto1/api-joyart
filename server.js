@@ -46,46 +46,46 @@ const storage = getStorage();
 const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
 const siteLink = process.env.SERVER_URL;
 
-const arrayOfValidOrigins = [
-  'https://artjoy.netlify.app',
-  'https://master--artjoy.netlify.app', // Adicionando a nova origem válida
-];
+// const arrayOfValidOrigins = [
+//   'https://artjoy.netlify.app',
+//   'https://master--artjoy.netlify.app', // Adicionando a nova origem válida
+// ];
 
-// Middleware de CORS
+// // Middleware de CORS
 
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
+// app.use((req, res, next) => {
+//   const origin = req.headers.origin;
 
-  // Verifica se a origem da requisição está na lista de origens permitidas
-  if (arrayOfValidOrigins.includes(origin)) {
-    res.setHeader("Access-Control-Allow-Origin", origin);
-  }
+//   // Verifica se a origem da requisição está na lista de origens permitidas
+//   if (arrayOfValidOrigins.includes(origin)) {
+//     res.setHeader("Access-Control-Allow-Origin", origin);
+//   }
 
-  // Configurações de segurança
-  res.setHeader(
-    "Content-Security-Policy",
-    "default-src 'self'; script-src 'self'"
-  );
-  res.setHeader("X-Content-Type-Options", "nosniff");
-  res.setHeader("X-Frame-Options", "DENY");
-  res.setHeader("X-XSS-Protection", "1; mode=block");
+//   // Configurações de segurança
+//   res.setHeader(
+//     "Content-Security-Policy",
+//     "default-src 'self'; script-src 'self'"
+//   );
+//   res.setHeader("X-Content-Type-Options", "nosniff");
+//   res.setHeader("X-Frame-Options", "DENY");
+//   res.setHeader("X-XSS-Protection", "1; mode=block");
 
-  // Permitir métodos HTTP específicos
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS"); // Adicione OPTIONS aqui
+//   // Permitir métodos HTTP específicos
+//   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS"); // Adicione OPTIONS aqui
 
-  // Permitir cabeçalhos específicos
-  res.setHeader(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
-  );
+//   // Permitir cabeçalhos específicos
+//   res.setHeader(
+//     "Access-Control-Allow-Headers",
+//     "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+//   );
 
-  // Se a requisição for do tipo OPTIONS, responda com 204 (No Content)
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(204);
-  }
+//   // Se a requisição for do tipo OPTIONS, responda com 204 (No Content)
+//   if (req.method === "OPTIONS") {
+//     return res.sendStatus(204);
+//   }
 
-  next(); // Passa para o próximo middleware ou rotas
-});
+//   next(); // Passa para o próximo middleware ou rotas
+// });
 
 app.post("/log", express.json(), (req, res) => {
   const { messageLog } = req.body;
