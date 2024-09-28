@@ -1,9 +1,8 @@
 {
-  "name": "server",
+  "name": "api-artjoywebsite",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "devStart": "node server.js",
     "start": "node server.js"
   },
   "keywords": [],
