@@ -360,6 +360,8 @@ app.post(
     }
     if (email && nameWithIdCheckout) {
       await sendThankYouEmail(email, nameWithIdCheckout);
+      email = null;
+      nameWithIdCheckout = null;
     }
     
     res.status(200).send("Evento recebido");
