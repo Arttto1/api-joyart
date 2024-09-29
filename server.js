@@ -92,7 +92,7 @@ app.post("/api/upload", upload.array("files"), async (req, res) => {
     }
 
     const data = JSON.parse(req.body.data); // Parseia os dados JSON
-    const { name, date, message, urlYtb, nameWithId } = data;
+    const { name, date, message, urlYtb, nameWithId, userEmail } = data;
 
     const files = req.files;
     if (!files || files.length === 0) {
@@ -124,7 +124,7 @@ app.post("/api/upload", upload.array("files"), async (req, res) => {
       message, // Adiciona a mensagem
       urlYtb, // Adiciona a URL do YouTube
       imagePath: nameWithId,
-      downloadURLs: downloadURLs, // Adiciona as URLs de download ao objeto de dados
+      userEmail,
     };
 
     await db.collection("submissions").doc(nameWithId).set(submissionData);
@@ -224,7 +224,7 @@ const getUserCountry = async (ip) => {
 // });
 
 app.post("/create-checkout-session", express.json(), async (req, res) => {
-  const { items, nameWithId } = req.body;
+  const { items, nameWithId, userEmail } = req.body;
   const userIp = req.headers["x-forwarded-for"] || req.ip;
 
   console.log("nameWithId recebido:", nameWithId);
@@ -258,9 +258,9 @@ app.post("/create-checkout-session", express.json(), async (req, res) => {
       success_url: `${siteLink}/success.html`,
       cancel_url: `${siteLink}/cancel.html`,
       customer_creation: "always",
-      customer_email: req.body.email,
       metadata: {
         nameWithId: nameWithId,
+        userEmail: userEmail
       },
     });
     res.json({ url: session.url });
@@ -278,8 +278,8 @@ function generateQRCodeLink(link) {
   )}&size=200x200`;
 }
 
-const sendThankYouEmail = async (email, nameWithIdCheckout) => {
-  console.log(nameWithIdCheckout)
+const sendThankYouEmail = async (userEmailCheckout, nameWithIdCheckout) => {
+  
   const encodedString = encodeURIComponent(nameWithIdCheckout);
 
   const costumerUrl = `https://master--artjoy.netlify.app/second.html?name=${encodedString}`;
@@ -296,7 +296,7 @@ const sendThankYouEmail = async (email, nameWithIdCheckout) => {
 
   const mailOptions = {
     from: process.env.AUTH_MAIL,
-    to: email,
+    to: userEmailCheckout,
     subject: "Obrigado pelo seu pagamento!",
     // text: `Seu pagamento foi bem-sucedido. Obrigado por escolher nosso serviço! O link de acesso para o site é ${sharedCostumerUrl}`,
     html: `
@@ -314,18 +314,6 @@ const sendThankYouEmail = async (email, nameWithIdCheckout) => {
   }
 };
 
-const waitForValue = () => {
-  let resolveFn;
-  const promise = new Promise((resolve) => {
-    resolveFn = resolve;
-  });
-
-  return {
-    promise,
-    resolveFn, // Função para resolver a Promise quando o valor estiver disponível
-  };
-};
-
 app.post(
   "/webhook",
   express.raw({ type: "application/json" }),
@@ -333,6 +321,9 @@ app.post(
     const sig = req.headers["stripe-signature"];
     let event;
 
+    let nameWithIdCheckout;
+    let userEmailCheckout;
+    
     try {
       event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
       console.log("Evento recebido:");
@@ -342,50 +333,19 @@ app.post(
       return;
     }
 
-    const { promise: emailPromise, resolveFn: resolveEmail } = waitForValue();
-    const { promise: nameWithIdPromise, resolveFn: resolveNameWithId } = waitForValue();
     if (event.type === "checkout.session.completed") {
       // Mudando para o evento correto
       const session = event.data.object;
 
-      const nameWithIdCheckout = session.metadata.nameWithId; // Acessa o nameWithId nos metadados
+      nameWithIdCheckout = session.metadata.nameWithId; // Acessa o nameWithId nos metadados
+      userEmailCheckout = session.metadata.userEmail;
 
-      console.log("nameWithId recebido no webhook:", nameWithIdCheckout);
-      resolveNameWithId(nameWithIdCheckout);
+      console.log("userEmail e nameWithId recebido no webhook:", nameWithIdCheckout, userEmailCheckout);
+      
     }
 
-
-    if (event.type === "payment_intent.succeeded") {
-      const paymentIntent = event.data.object; // O objeto payment_intent
-      const customerId = paymentIntent.customer;
-    
-      // Acessar o e-mail do cliente
-      if (customerId) {
-        try {
-          const customer = await stripe.customers.retrieve(customerId);
-          const email = customer.email;
-          console.log("E-mail do cliente:", email);
-          resolveEmail(email); 
-        } catch (err) {
-          console.error("Erro ao recuperar o cliente:", err);
-        }
-      }
-
-    }
-
-    try {
-      // Espera as duas Promises (email e nameWithIdCheckout) serem resolvidas
-      const [email, nameWithIdCheckout] = await Promise.all([emailPromise, nameWithIdPromise]);
-
-      // Envia o e-mail de agradecimento
-      if (email && nameWithIdCheckout) {
-        await sendThankYouEmail(email, nameWithIdCheckout);
-      }
-
-      res.status(200).send("Evento recebido e processado");
-    } catch (error) {
-      console.error("Erro ao processar evento:", error);
-      res.status(500).send("Erro ao processar evento");
+    if (userEmailCheckout && nameWithIdCheckout) {
+      await sendThankYouEmail(userEmailCheckout, nameWithIdCheckout);
     }
   }
 );
