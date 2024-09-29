@@ -313,6 +313,10 @@ const sendThankYouEmail = async (email, nameWithIdCheckout) => {
   }
 };
 
+const waitForOneSecond = () => {
+  return new Promise((resolve) => setTimeout(resolve, 1000));
+};
+
 app.post(
   "/webhook",
   express.raw({ type: "application/json" }),
@@ -356,8 +360,10 @@ app.post(
         }
       }
 
-      // Se o e-mail estiver presente, envia o email de agradecimento
     }
+      await waitForOneSecond();
+
+      // Se o e-mail estiver presente, envia o email de agradecimento
     if (email && nameWithIdCheckout) {
       await sendThankYouEmail(email, nameWithIdCheckout);
       email = null;
