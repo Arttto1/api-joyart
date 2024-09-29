@@ -329,26 +329,6 @@ app.post(
       return;
     }
 
-    res.status(200).send("Evento recebido");
-  }
-);
-
-app.post(
-  "/webhook",
-  express.raw({ type: "application/json" }),
-  async (req, res) => {
-    const sig = req.headers["stripe-signature"];
-    let event;
-
-    try {
-      event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
-      console.log("Evento recebido:");
-    } catch (err) {
-      console.error("Webhook Error:", err.message);
-      res.status(400).send(`Webhook Error: ${err.message}`);
-      return;
-    }
-
     let nameWithIdCheckout;
     if (event.type === "checkout.session.completed") {
       // Mudando para o evento correto
