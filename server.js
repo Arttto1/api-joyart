@@ -314,7 +314,7 @@ const sendThankYouEmail = async (email, nameWithIdCheckout) => {
 };
 
 const waitForOneSecond = () => {
-  return new Promise((resolve) => setTimeout(resolve, 1000));
+  return new Promise((resolve) => setTimeout(resolve, 3000));
 };
 
 app.post(
@@ -364,7 +364,7 @@ app.post(
       await waitForOneSecond();
 
       // Se o e-mail estiver presente, envia o email de agradecimento
-    if (email && nameWithIdCheckout) {
+    if (email) {
       await sendThankYouEmail(email, nameWithIdCheckout);
       email = null;
       nameWithIdCheckout = null;
