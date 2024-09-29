@@ -124,7 +124,7 @@ app.post("/api/upload", upload.array("files"), async (req, res) => {
       message, // Adiciona a mensagem
       urlYtb, // Adiciona a URL do YouTube
       imagePath: nameWithId,
-      userEmail,
+      userEmail: userEmail,
     };
 
     await db.collection("submissions").doc(nameWithId).set(submissionData);
