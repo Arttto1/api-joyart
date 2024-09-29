@@ -279,6 +279,7 @@ function generateQRCodeLink(link) {
 }
 
 const sendThankYouEmail = async (email, nameWithIdCheckout) => {
+  console.log(nameWithIdCheckout)
   const encodedString = encodeURIComponent(nameWithIdCheckout);
 
   const costumerUrl = `https://master--artjoy.netlify.app/second.html?name=${encodedString}`;
@@ -313,8 +314,19 @@ const sendThankYouEmail = async (email, nameWithIdCheckout) => {
   }
 };
 
-const waitForOneSecond = () => {
-  return new Promise((resolve) => setTimeout(resolve, 3000));
+// const waitForOneSecond = () => {
+//   return new Promise((resolve) => setTimeout(resolve, 3000));
+// };
+
+const waitForPolling = async (checkCondition) => {
+  return new Promise((resolve) => {
+    const interval = setInterval(() => {
+      if (checkCondition()) {
+        clearInterval(interval);
+        resolve();
+      }
+    }, 200);
+  });
 };
 
 app.post(
@@ -361,14 +373,21 @@ app.post(
       }
 
     }
-      await waitForOneSecond();
+    await waitForPolling(() => email && nameWithIdCheckout);
 
-      // Se o e-mail estiver presente, envia o email de agradecimento
-    if (email) {
-      await sendThankYouEmail(email, nameWithIdCheckout);
-      email = null;
-      nameWithIdCheckout = null;
-    }
+    await sendThankYouEmail(email, nameWithIdCheckout);
+
+    // Limpa as variáveis após enviar o e-mail
+    email = null;
+    nameWithIdCheckout = null;
+
+    // Se o e-mail estiver presente, envia o email de agradecimento
+    // if (email) {
+    //   // await waitForOneSecond();
+    //   await sendThankYouEmail(email, nameWithIdCheckout);
+    //   email = null;
+    //   nameWithIdCheckout = null;
+    // }
     
     res.status(200).send("Evento recebido");
   }
