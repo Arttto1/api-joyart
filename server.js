@@ -245,10 +245,10 @@ app.post("/create-checkout-session", express.json(), async (req, res) => {
           quantity: item.quantity,
         };
       }),
+      customer_email: req.body.email,
       success_url: `${siteLink}/success.html`,
       cancel_url: `${siteLink}/cancel.html`,
       customer_creation: "always",
-      customer_email: req.body.email,
       metadata: {
         nameWithId: nameWithId,
       },
@@ -319,18 +319,29 @@ app.post(
       return;
     }
 
-    if (event.type === "checkout.session.completed") { // Mudando para o evento correto
-      const session = event.data.object;
+    if (event.type === "payment_intent.succeeded") {
+      const paymentIntent = event.data.object; // O objeto payment_intent
+      const customerId = paymentIntent.customer;
 
-      // Obter o e-mail do cliente
-      const email = session.customer_email; // O e-mail deve estar disponível nos dados da sessão
-      const nameWithIdCheckout = session.metadata.nameWithId; // Acessa o nameWithId nos metadados
+      // Acessar os metadados do PaymentIntent
+      const nameWithId = paymentIntent.metadata.nameWithId; // Metadados acessíveis
+      console.log("Metadado nameWithId:", nameWithId);
 
-      console.log("nameWithId recebido no webhook:", nameWithIdCheckout);
-      console.log("email recebido no webhook:", email);
+      // Acessar o e-mail do cliente
+      let email;
+      if (customerId) {
+        try {
+          const customer = await stripe.customers.retrieve(customerId);
+          email = customer.email;
+          console.log("E-mail do cliente:", email);
+        } catch (err) {
+          console.error("Erro ao recuperar o cliente:", err);
+        }
+      }
 
+      // Se o e-mail estiver presente, envia o email de agradecimento
       if (email) {
-        await sendThankYouEmail(email, nameWithIdCheckout);
+        await sendThankYouEmail(email, nameWithId);
       }
     }
 
