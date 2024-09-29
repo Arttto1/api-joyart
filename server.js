@@ -314,19 +314,16 @@ const sendThankYouEmail = async (email, nameWithIdCheckout) => {
   }
 };
 
-// const waitForOneSecond = () => {
-//   return new Promise((resolve) => setTimeout(resolve, 3000));
-// };
-
-const waitForPolling = async (checkCondition) => {
-  return new Promise((resolve) => {
-    const interval = setInterval(() => {
-      if (checkCondition()) {
-        clearInterval(interval);
-        resolve();
-      }
-    }, 200);
+const waitForValue = () => {
+  let resolveFn;
+  const promise = new Promise((resolve) => {
+    resolveFn = resolve;
   });
+
+  return {
+    promise,
+    resolveFn, // Função para resolver a Promise quando o valor estiver disponível
+  };
 };
 
 app.post(
@@ -345,15 +342,16 @@ app.post(
       return;
     }
 
-    let nameWithIdCheckout;
-    let email;
+    const { promise: emailPromise, resolveFn: resolveEmail } = waitForValue();
+    const { promise: nameWithIdPromise, resolveFn: resolveNameWithId } = waitForValue();
     if (event.type === "checkout.session.completed") {
       // Mudando para o evento correto
       const session = event.data.object;
 
-      nameWithIdCheckout = session.metadata.nameWithId; // Acessa o nameWithId nos metadados
+      const nameWithIdCheckout = session.metadata.nameWithId; // Acessa o nameWithId nos metadados
 
       console.log("nameWithId recebido no webhook:", nameWithIdCheckout);
+      resolveNameWithId(nameWithIdCheckout);
     }
 
 
@@ -365,31 +363,30 @@ app.post(
       if (customerId) {
         try {
           const customer = await stripe.customers.retrieve(customerId);
-          email = customer.email;
+          const email = customer.email;
           console.log("E-mail do cliente:", email);
+          resolveEmail(email); 
         } catch (err) {
           console.error("Erro ao recuperar o cliente:", err);
         }
       }
 
     }
-    await waitForPolling(() => email && nameWithIdCheckout);
 
-    await sendThankYouEmail(email, nameWithIdCheckout);
+    try {
+      // Espera as duas Promises (email e nameWithIdCheckout) serem resolvidas
+      const [email, nameWithIdCheckout] = await Promise.all([emailPromise, nameWithIdPromise]);
 
-    // Limpa as variáveis após enviar o e-mail
-    email = null;
-    nameWithIdCheckout = null;
+      // Envia o e-mail de agradecimento
+      if (email && nameWithIdCheckout) {
+        await sendThankYouEmail(email, nameWithIdCheckout);
+      }
 
-    // Se o e-mail estiver presente, envia o email de agradecimento
-    // if (email) {
-    //   // await waitForOneSecond();
-    //   await sendThankYouEmail(email, nameWithIdCheckout);
-    //   email = null;
-    //   nameWithIdCheckout = null;
-    // }
-    
-    res.status(200).send("Evento recebido");
+      res.status(200).send("Evento recebido e processado");
+    } catch (error) {
+      console.error("Erro ao processar evento:", error);
+      res.status(500).send("Erro ao processar evento");
+    }
   }
 );
 
