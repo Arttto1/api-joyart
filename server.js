@@ -24,13 +24,12 @@ const nodemailer = require("nodemailer");
 const stripe = require("stripe")(process.env.STRIPE_PRIVATE_KEY);
 const axios = require("axios");
 const express = require("express");
-const cors = require('cors');
+const cors = require("cors");
 const app = express();
 
 app.use(express.static("public"));
 let imagePath = null;
 let nameWithId = null;
-
 
 initializeApp({
   credential: cert(serviceAccount),
@@ -45,9 +44,20 @@ const siteLink = process.env.SERVER_URL;
 
 // Configurações de CORS
 const corsOptions = {
-  origin: ['https://master--artjoy.netlify.app', 'http://localhost:3001', "http://localhost:3000"],
-  methods: 'GET, POST, OPTIONS',
-  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization', 'Stripe-Signature',],
+  origin: [
+    "https://master--artjoy.netlify.app",
+    "http://localhost:3001",
+    "http://localhost:3000",
+  ],
+  methods: "GET, POST, OPTIONS",
+  allowedHeaders: [
+    "Origin",
+    "X-Requested-With",
+    "Content-Type",
+    "Accept",
+    "Authorization",
+    "Stripe-Signature",
+  ],
 };
 
 // Usando o middleware CORS
@@ -55,13 +65,13 @@ app.use(cors(corsOptions));
 
 app.get("/favicon.ico", (req, res) => res.status(204));
 
-app.get('/', (req, res) => {
-  res.send('Hello World!');
+app.get("/", (req, res) => {
+  res.send("Hello World!");
 });
 
-app.get('/api/test', (req, res) => {
-  res.json({ message: 'A rota de teste está funcionando!' });
-  res.send('<h1>A rota de teste está funcionando!</h1>'); // Envia uma resposta HTML
+app.get("/api/test", (req, res) => {
+  res.json({ message: "A rota de teste está funcionando!" });
+  res.send("<h1>A rota de teste está funcionando!</h1>"); // Envia uma resposta HTML
 });
 
 app.post("/log", express.json(), (req, res) => {
@@ -245,10 +255,10 @@ app.post("/create-checkout-session", express.json(), async (req, res) => {
           quantity: item.quantity,
         };
       }),
-      customer_email: req.body.email,
       success_url: `${siteLink}/success.html`,
       cancel_url: `${siteLink}/cancel.html`,
       customer_creation: "always",
+      customer_email: req.body.email,
       metadata: {
         nameWithId: nameWithId,
       },
@@ -319,14 +329,41 @@ app.post(
       return;
     }
 
+    res.status(200).send("Evento recebido");
+  }
+);
+
+app.post(
+  "/webhook",
+  express.raw({ type: "application/json" }),
+  async (req, res) => {
+    const sig = req.headers["stripe-signature"];
+    let event;
+
+    try {
+      event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+      console.log("Evento recebido:");
+    } catch (err) {
+      console.error("Webhook Error:", err.message);
+      res.status(400).send(`Webhook Error: ${err.message}`);
+      return;
+    }
+
+    let nameWithIdCheckout;
+    if (event.type === "checkout.session.completed") {
+      // Mudando para o evento correto
+      const session = event.data.object;
+
+      nameWithIdCheckout = session.metadata.nameWithId; // Acessa o nameWithId nos metadados
+
+      console.log("nameWithId recebido no webhook:", nameWithIdCheckout);
+    }
+
+
     if (event.type === "payment_intent.succeeded") {
       const paymentIntent = event.data.object; // O objeto payment_intent
       const customerId = paymentIntent.customer;
-
-      // Acessar os metadados do PaymentIntent
-      const nameWithId = paymentIntent.metadata.nameWithId; // Metadados acessíveis
-      console.log("Metadado nameWithId:", nameWithId);
-
+    
       // Acessar o e-mail do cliente
       let email;
       if (customerId) {
@@ -340,11 +377,11 @@ app.post(
       }
 
       // Se o e-mail estiver presente, envia o email de agradecimento
-      if (email) {
-        await sendThankYouEmail(email, nameWithId);
-      }
     }
-
+    if (email) {
+      await sendThankYouEmail(email, nameWithIdCheckout);
+    }
+    
     res.status(200).send("Evento recebido");
   }
 );
