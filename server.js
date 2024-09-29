@@ -358,7 +358,7 @@ app.post(
 
       // Se o e-mail estiver presente, envia o email de agradecimento
     }
-    if (email) {
+    if (email && nameWithIdCheckout) {
       await sendThankYouEmail(email, nameWithIdCheckout);
     }
     
