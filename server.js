@@ -330,6 +330,7 @@ app.post(
     }
 
     let nameWithIdCheckout;
+    let email;
     if (event.type === "checkout.session.completed") {
       // Mudando para o evento correto
       const session = event.data.object;
@@ -345,7 +346,6 @@ app.post(
       const customerId = paymentIntent.customer;
     
       // Acessar o e-mail do cliente
-      let email;
       if (customerId) {
         try {
           const customer = await stripe.customers.retrieve(customerId);
