@@ -345,7 +345,7 @@ app.post(
     }
 
     if (userEmailCheckout && nameWithIdCheckout) {
-      await sendThankYouEmail(userEmailCheckout, nameWithIdCheckout);
+      sendThankYouEmail(userEmailCheckout, nameWithIdCheckout);
     }
   }
 );
