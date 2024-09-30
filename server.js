@@ -62,15 +62,10 @@ const corsOptions = {
 // Usando o middleware CORS
 app.use(cors(corsOptions));
 
-app.post("/log", express.json(), (req, res) => {
-  const { messageLog } = req.body;
-  console.log("Log do cliente:", messageLog);
-  res.status(200).send("Log recebido");
+app.get("/", (req, res) => {
+  res.status(200).send("Bem-vindo à API do ArtJoy!"); // Responde com status 200 e a mensagem
 });
 
-app.get("/api/secure-data", (req, res) => {
-  res.json({ message: "Este é um endpoint seguro." });
-});
 
 app.post("/api/upload", upload.array("files"), async (req, res) => {
   try {
