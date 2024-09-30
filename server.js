@@ -180,7 +180,7 @@ const storeItems = new Map([
     2,
     {
       priceInCentsUSD: 949,
-      priceInCentsBRL: 1,
+      priceInCentsBRL: 2999,
       nameUS: "Lifetime plan, 8 photos and with music",
       nameBR: " Plano vitalício, 8 fotos e com música",
     },
