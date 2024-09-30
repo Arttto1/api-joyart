@@ -46,8 +46,7 @@ const siteLink = process.env.SERVER_URL;
 const corsOptions = {
   origin: [
     "https://master--artjoy.netlify.app",
-    "http://localhost:3001",
-    "http://localhost:3000",
+    "https://artjoy.netlify.app",
   ],
   methods: "GET, POST, OPTIONS",
   allowedHeaders: [
@@ -347,6 +346,7 @@ app.post(
     if (userEmailCheckout && nameWithIdCheckout) {
       sendThankYouEmail(userEmailCheckout, nameWithIdCheckout);
     }
+    res.status(200).json({ received: true });
   }
 );
 
