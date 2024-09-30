@@ -62,17 +62,6 @@ const corsOptions = {
 // Usando o middleware CORS
 app.use(cors(corsOptions));
 
-app.get("/favicon.ico", (req, res) => res.status(204));
-
-app.get("/", (req, res) => {
-  res.send("Hello World!");
-});
-
-app.get("/api/test", (req, res) => {
-  res.json({ message: "A rota de teste está funcionando!" });
-  res.send("<h1>A rota de teste está funcionando!</h1>"); // Envia uma resposta HTML
-});
-
 app.post("/log", express.json(), (req, res) => {
   const { messageLog } = req.body;
   console.log("Log do cliente:", messageLog);
