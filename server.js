@@ -171,7 +171,7 @@ const storeItems = new Map([
     1,
     {
       priceInCentsUSD: 499,
-      priceInCentsBRL: 1649,
+      priceInCentsBRL: 1,
       nameUS: "One year plan, 4 photos and no music",
       nameBR: " Plano de 1 ano, 4 fotos e sem música",
     },
@@ -325,41 +325,40 @@ app.post(
 
     let nameWithIdCheckout;
     let userEmailCheckout;
-    
+
     try {
       event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
       console.log("Evento recebido:");
     } catch (err) {
       console.error("Webhook Error:", err.message);
-      res.status(400).send(`Webhook Error: ${err.message}`);
-      return;
+      return res.status(400).send(`Webhook Error: ${err.message}`);
     }
 
     if (event.type === "checkout.session.completed") {
-      // Mudando para o evento correto
       const session = event.data.object;
 
       nameWithIdCheckout = session.metadata.nameWithId; // Acessa o nameWithId nos metadados
       userEmailCheckout = session.metadata.userEmail;
 
       console.log("userEmail e nameWithId recebido no webhook:", nameWithIdCheckout, userEmailCheckout);
-      
-    }
 
-    if (userEmailCheckout && nameWithIdCheckout) {
-      try {
-        // Aguarda o envio do e-mail antes de retornar a resposta ao Stripe
-        await sendThankYouEmail(userEmailCheckout, nameWithIdCheckout);
-      } catch (error) {
-        console.error("Erro ao enviar o e-mail:", error);
-        return res.status(500).json({ error: "Erro ao enviar o e-mail" });
+      if (userEmailCheckout && nameWithIdCheckout) {
+        // Envia o e-mail de forma assíncrona, mas não aguarda
+        sendThankYouEmail(userEmailCheckout, nameWithIdCheckout)
+          .then(() => {
+            console.log("E-mail enviado com sucesso");
+          })
+          .catch(error => {
+            console.error("Erro ao enviar o e-mail:", error);
+          });
       }
     }
 
-    // Somente retorna 200 após o e-mail ter sido enviado
+    // Retorna 200 imediatamente após receber o evento
     return res.status(200).json({ received: true });
   }
 );
+
 
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
