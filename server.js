@@ -122,8 +122,8 @@ app.post("/api/upload", upload.array("files"), async (req, res) => {
       name, // Adiciona o nome
       message, // Adiciona a mensagem
       urlYtb, // Adiciona a URL do YouTube
+      userEmail,
       imagePath: nameWithId,
-      userEmail: userEmail,
     };
 
     await db.collection("submissions").doc(nameWithId).set(submissionData);
@@ -344,9 +344,17 @@ app.post(
     }
 
     if (userEmailCheckout && nameWithIdCheckout) {
-      sendThankYouEmail(userEmailCheckout, nameWithIdCheckout);
+      try {
+        // Aguarda o envio do e-mail antes de retornar a resposta ao Stripe
+        await sendThankYouEmail(userEmailCheckout, nameWithIdCheckout);
+      } catch (error) {
+        console.error("Erro ao enviar o e-mail:", error);
+        return res.status(500).json({ error: "Erro ao enviar o e-mail" });
+      }
     }
-    // res.status(200).json({ received: true });
+
+    // Somente retorna 200 após o e-mail ter sido enviado
+    return res.status(200).json({ received: true });
   }
 );
 
