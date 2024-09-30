@@ -281,7 +281,7 @@ const sendThankYouEmail = async (userEmailCheckout, nameWithIdCheckout) => {
   
   const encodedString = encodeURIComponent(nameWithIdCheckout);
 
-  const costumerUrl = `https://master--artjoy.netlify.app/second.html?name=${encodedString}`;
+  const costumerUrl = `https://artjoy.netlify.app/second.html?name=${encodedString}`;
 
   const qrCodeUrl = generateQRCodeLink(costumerUrl);
 
