@@ -308,10 +308,10 @@ const sendThankYouEmail = async (userEmailCheckout, nameWithIdCheckout) => {
       <h1 style="color: #d43f55; padding-bottom: 0.5rem;">Thank You for Your Purchase!</h1>
       <p style="margin-bottom: 0.5rem;">We truly appreciate your choice and trust in our service.</p>
       <p style="margin-bottom: 0.5rem;">Here is your exclusive access link:</p>
-      <p style="margin-bottom: 0.5rem;"><a href="https://artjoy.netlify.app/second.html?name=email_tem_que_dar_1727711463288" style="color: #0e004f; font-weight: bold;">https://artjoy.netlify.app/second.html?name=email_tem_que_dar_1727711463288</a></p>
+      <p style="margin-bottom: 0.5rem;"><a href="${costumerUrl}" style="color: #0e004f; font-weight: bold;">${costumerUrl}</a></p>
       <p style="margin-bottom: 0.5rem;">Or you can scan the QR code below to get instant access:</p>
       <div style="text-align: center; margin: 1.5rem 0;">
-        <img src="images/WhatsApp Image 2024-09-30 at 14.01.29.jpeg" alt="QR Code" style="border-radius: 10px;"/>
+        <img src="${qrCodeUrl}" alt="QR Code" style="border-radius: 10px;"/>
       </div>
       <p style="margin-bottom: 0.5rem;">If this email is in junk folder or spam, move it to your inbox to view the QR code and access the link.</p>
       <p style="color: #0e004f; font-weight: bolder;">Thank you once again for choosing us!</p>
