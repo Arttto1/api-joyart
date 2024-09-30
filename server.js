@@ -346,7 +346,7 @@ app.post(
     if (userEmailCheckout && nameWithIdCheckout) {
       sendThankYouEmail(userEmailCheckout, nameWithIdCheckout);
     }
-    res.status(200).json({ received: true });
+    // res.status(200).json({ received: true });
   }
 );
 
