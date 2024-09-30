@@ -182,7 +182,7 @@ const storeItems = new Map([
     1,
     {
       priceInCentsUSD: 499,
-      priceInCentsBRL: 2499,
+      priceInCentsBRL: 1649,
       nameUS: "One year plan, 4 photos and no music",
       nameBR: " Plano de 1 ano, 4 fotos e sem música",
     },
@@ -191,7 +191,7 @@ const storeItems = new Map([
     2,
     {
       priceInCentsUSD: 949,
-      priceInCentsBRL: 4999,
+      priceInCentsBRL: 2999,
       nameUS: "Lifetime plan, 8 photos and with music",
       nameBR: " Plano vitalício, 8 fotos e com música",
     },
@@ -296,12 +296,26 @@ const sendThankYouEmail = async (userEmailCheckout, nameWithIdCheckout) => {
   const mailOptions = {
     from: process.env.AUTH_MAIL,
     to: userEmailCheckout,
-    subject: "Obrigado pelo seu pagamento!",
-    // text: `Seu pagamento foi bem-sucedido. Obrigado por escolher nosso serviço! O link de acesso para o site é ${sharedCostumerUrl}`,
-    html: `
-    <p>Aqui está o seu link: <a href="${costumerUrl}">${costumerUrl}</a></p>
-    <p>Ou você pode escanear o QR Code abaixo:</p>
-    <img src="${qrCodeUrl}" alt="QR Code" />`,
+    subject: "Thank You for Your Purchase!",
+    html:     `
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fredoka:wdth,wght@75..125,300..700&family=Quicksand:wght@300..700&display=swap"
+      rel="stylesheet"
+    />
+    <div style="background-color: #f59eab; padding: 1.5rem; font-family: 'fredoka', sans-serif; color: #fff; text-align: center; margin: 0;">
+      <h1 style="color: #d43f55; padding-bottom: 0.5rem;">Thank You for Your Purchase!</h1>
+      <p style="margin-bottom: 0.5rem;">We truly appreciate your choice and trust in our service.</p>
+      <p style="margin-bottom: 0.5rem;">Here is your exclusive access link:</p>
+      <p style="margin-bottom: 0.5rem;"><a href="https://artjoy.netlify.app/second.html?name=email_tem_que_dar_1727711463288" style="color: #0e004f; font-weight: bold;">https://artjoy.netlify.app/second.html?name=email_tem_que_dar_1727711463288</a></p>
+      <p style="margin-bottom: 0.5rem;">Or you can scan the QR code below to get instant access:</p>
+      <div style="text-align: center; margin: 1.5rem 0;">
+        <img src="images/WhatsApp Image 2024-09-30 at 14.01.29.jpeg" alt="QR Code" style="border-radius: 10px;"/>
+      </div>
+      <p style="margin-bottom: 0.5rem;">If this email is in junk folder or spam, move it to your inbox to view the QR code and access the link.</p>
+      <p style="color: #0e004f; font-weight: bolder;">Thank you once again for choosing us!</p>
+    </div>`
   };
 
   try {
