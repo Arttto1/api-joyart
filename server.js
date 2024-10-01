@@ -44,9 +44,7 @@ const siteLink = process.env.SERVER_URL;
 
 // Configurações de CORS
 const corsOptions = {
-  origin: [
-    "https://artjoy.netlify.app",
-  ],
+  origin: ["https://artjoy.netlify.app"],
   methods: "GET, POST, OPTIONS",
   allowedHeaders: [
     "Origin",
@@ -64,7 +62,6 @@ app.use(cors(corsOptions));
 app.get("/", (req, res) => {
   res.status(200).send("Bem-vindo à API do ArtJoy!"); // Responde com status 200 e a mensagem
 });
-
 
 app.post("/api/upload", upload.array("files"), async (req, res) => {
   try {
@@ -230,7 +227,7 @@ app.post("/create-checkout-session", express.json(), async (req, res) => {
       customer_creation: "always",
       metadata: {
         nameWithId: nameWithId,
-        userEmail: userEmail
+        userEmail: userEmail,
       },
     });
     res.json({ url: session.url });
@@ -249,7 +246,6 @@ function generateQRCodeLink(link) {
 }
 
 const sendThankYouEmail = async (userEmailCheckout, nameWithIdCheckout) => {
-  
   const encodedString = encodeURIComponent(nameWithIdCheckout);
 
   const costumerUrl = `https://artjoy.netlify.app/second.html?name=${encodedString}`;
@@ -268,7 +264,7 @@ const sendThankYouEmail = async (userEmailCheckout, nameWithIdCheckout) => {
     from: process.env.AUTH_MAIL,
     to: userEmailCheckout,
     subject: "Thank You for Your Purchase!",
-    html:     `
+    html: `
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -286,7 +282,7 @@ const sendThankYouEmail = async (userEmailCheckout, nameWithIdCheckout) => {
       </div>
       <p style="margin-bottom: 0.5rem;">If this email is in junk folder or spam, move it to your inbox to view the QR code and access the link.</p>
       <p style="color: #0e004f; font-weight: bolder;">Thank you once again for choosing us!</p>
-    </div>`
+    </div>`,
   };
 
   try {
@@ -297,6 +293,18 @@ const sendThankYouEmail = async (userEmailCheckout, nameWithIdCheckout) => {
     console.log("erro ao enviar o email");
   }
 };
+app.post("/send-email", async (req, res) => {
+  const { userEmail, nameWithId } = req.body;
+
+  try {
+    await sendThankYouEmail(userEmail, nameWithId);
+    console.log(`E-mail enviado para ${userEmail}`);
+    return res.status(200).json({ message: "E-mail enviado com sucesso" });
+  } catch (error) {
+    console.error("Erro ao enviar o e-mail:", error);
+    return res.status(500).json({ error: "Erro ao enviar o e-mail" });
+  }
+});
 
 app.post(
   "/webhook",
@@ -304,9 +312,6 @@ app.post(
   async (req, res) => {
     const sig = req.headers["stripe-signature"];
     let event;
-
-    let nameWithIdCheckout;
-    let userEmailCheckout;
 
     try {
       event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
@@ -318,29 +323,33 @@ app.post(
 
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
+      const nameWithIdCheckout = session.metadata.nameWithId;
+      const userEmailCheckout = session.metadata.userEmail;
 
-      nameWithIdCheckout = session.metadata.nameWithId; // Acessa o nameWithId nos metadados
-      userEmailCheckout = session.metadata.userEmail;
-
-      console.log("userEmail e nameWithId recebido no webhook:", nameWithIdCheckout, userEmailCheckout);
+      console.log(
+        "userEmail e nameWithId recebido no webhook:",
+        nameWithIdCheckout,
+        userEmailCheckout
+      );
 
       if (userEmailCheckout && nameWithIdCheckout) {
-        // Envia o e-mail de forma assíncrona, mas não aguarda
-        sendThankYouEmail(userEmailCheckout, nameWithIdCheckout)
-          .then(() => {
-            console.log("E-mail enviado com sucesso");
-          })
-          .catch(error => {
-            console.error("Erro ao enviar o e-mail:", error);
-          });
+        console.log("Enviando e-mail para:", userEmailCheckout);
+        // Chamada assíncrona para enviar e-mail, sem esperar
+        axios.post(`${siteLink}/send-email`, {
+          userEmail: userEmailCheckout,
+          nameWithId: nameWithIdCheckout,
+        }).then(() => {
+          console.log("Chamada para enviar e-mail realizada com sucesso.");
+        }).catch(error => {
+          console.error("Erro ao chamar a rota de envio de e-mail:", error);
+        });
       }
     }
 
-    // Retorna 200 imediatamente após receber o evento
+    // Retorna 200 imediatamente após processar o evento
     return res.status(200).json({ received: true });
   }
 );
-
 
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
