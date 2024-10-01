@@ -4,7 +4,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
     match /submissions/{docId} {
       allow read: if docId == request.query.urlName; // Lê somente se o docId for igual ao urlName
-      allow write: if request.headers.referer.matches('https?://0786-2804-14d-8483-4a69-1cb5-8075-4834-9eee.ngrok-free.app/index.html');
+      allow write: if true;
     }
   }
 }

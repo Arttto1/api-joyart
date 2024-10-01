@@ -45,7 +45,6 @@ const siteLink = process.env.SERVER_URL;
 // Configurações de CORS
 const corsOptions = {
   origin: [
-    "https://master--artjoy.netlify.app",
     "https://artjoy.netlify.app",
   ],
   methods: "GET, POST, OPTIONS",
@@ -193,18 +192,6 @@ const getUserCountry = async (ip) => {
     return "US"; // Retorna 'US' em caso de falha
   }
 };
-
-// app.post("/api/saveCostumerUrl", express.json(), (req, res) => {
-//   if (!req.body || !req.body.costumerUrl) {
-//     console.log("A URL do cliente não foi fornecida.");
-//     return res
-//       .status(400)
-//       .json({ message: "A URL do cliente não foi fornecida." });
-//   }
-//   sharedCostumerUrl = req.body.costumerUrl;
-//   console.log(`o link é esseeeeeeeeeee${sharedCostumerUrl}`); // Armazenando a URL na variável global
-//   res.status(200).json({ message: "URL recebida com sucesso!" });
-// });
 
 app.post("/create-checkout-session", express.json(), async (req, res) => {
   const { items, nameWithId, userEmail } = req.body;
