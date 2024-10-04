@@ -193,6 +193,14 @@ const getUserCountry = async (ip) => {
   }
 };
 
+app.get('/api/getUserCountry', async (req, res) => {
+  let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  ip = ip.split(',')[0]; // Caso haja múltiplos IPs no 'x-forwarded-for', pega o primeiro
+  const country = await getUserCountry(ip); // Chama a função getUserCountry já definida
+  res.json({ country });
+});
+
+
 app.post("/create-checkout-session", express.json(), async (req, res) => {
   const { items, nameWithId, userEmail } = req.body;
   const userIp = req.headers["x-forwarded-for"] || req.ip;
