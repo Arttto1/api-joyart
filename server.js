@@ -194,8 +194,10 @@ const getUserCountry = async (ip) => {
 };
 
 app.get("/api/get-country", async (req, res) => {
-  const ip = req.ip || req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+  const ip = req.ip || req.headers["x-forwarded-for"];
+  console.log("IP do usuário:", ip); // Log do IP capturado
   const country = await getUserCountry(ip);
+  console.log("País identificado:", country); // Log do país identificado
   res.json({ country });
 });
 
